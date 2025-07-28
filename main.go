@@ -1,21 +1,25 @@
 package main
 
-import (
-	"fmt"
-)
+import "sync"
+
+func expensiveOp() {
+	sum := 0
+	for i := range 1000000 {
+		sum += i
+	}
+	println(sum)
+}
 
 func main() {
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
 
-	c := make(chan int)
-
-	go func () {
-		firstSum := <-c
-		fmt.Println(firstSum)
-		secondSum := firstSum + 10
-		c<-secondSum
-	}()
-
-	c <- 100
-	fmt.Println(<-c)
-
+		go func() {
+			defer wg.Done()
+			expensiveOp()
+		}()
+	}
+	wg.Wait()
+	println("main Function ended")
 }
